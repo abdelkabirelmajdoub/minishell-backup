@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokenize.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yazlaigi <yazlaigi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ael-majd <ael-majd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/26 11:53:21 by yazlaigi          #+#    #+#             */
-/*   Updated: 2025/05/10 11:29:19 by yazlaigi         ###   ########.fr       */
+/*   Updated: 2025/05/15 11:33:19 by ael-majd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ void	handle_operator(char *input, int *i, t_token **head)
 		token_value[1] = '<';
 	token_value[2] = '\0';
 	current = token_creation(token_value, type);
+	free(token_value);
 	token_add_back(head, current);
 	(*i)++;
 }
@@ -45,10 +46,12 @@ int	handle_quoted(char *input, int *i, t_token **head)
 	if (input[*i] == '\0')
 	{
 		printf("syntax error near unexpected token \n");
+		(*head)->error = 0;
 		return (0);
 	}
 	token_value = ft_strndup(&input[start], (*i) - start);
 	current = token_creation(token_value, WORD);
+	free(token_value);
 	current->quote_type = quote;
 	token_add_back(head, current);
 	if (input[*i] == quote)
@@ -69,6 +72,7 @@ void	handle_word(char *input, int *i, t_token **head)
 		(*i)++;
 	token_value = ft_strndup(&input[start], *i - start);
 	current = token_creation(token_value, WORD);
+	free(token_value);
 	token_add_back(head, current);
 }
 

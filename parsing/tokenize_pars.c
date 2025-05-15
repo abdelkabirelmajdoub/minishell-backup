@@ -6,7 +6,7 @@
 /*   By: ael-majd <ael-majd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/29 09:42:31 by yazlaigi          #+#    #+#             */
-/*   Updated: 2025/05/13 13:45:34 by ael-majd         ###   ########.fr       */
+/*   Updated: 2025/05/15 11:38:09 by ael-majd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,16 +26,16 @@ void	pars_helper2(t_token **tok, t_cmd *cmd, int *i)
 {
 	
 	if ((*tok)->type == REDIR_IN)
-		cmd->infile = (*tok)->next->value;
+		cmd->infile = ft_strdup((*tok)->next->value);
 	else if ((*tok)->type == REDIR_APPEND)
 	{
-		cmd->append = (*tok)->next->value;
-		cmd->out_file[(*i)++] = (*tok)->next->value;
+		cmd->append = ft_strdup((*tok)->next->value);
+		cmd->out_file[(*i)++] = ft_strdup((*tok)->next->value);
 	}
 	else if ((*tok)->type == REDIR_OUT)
-		cmd->out_file[(*i)++] = (*tok)->next->value;
+		cmd->out_file[(*i)++] = ft_strdup((*tok)->next->value);
 	else if ((*tok)->type == REDIR_HEREDOC)
-		cmd->limiter = (*tok)->next->value;
+		cmd->limiter = ft_strdup((*tok)->next->value);
 }
 
 void	pars_helper(t_token **tok, t_cmd *cmd, char **args, int *argc)
@@ -44,6 +44,8 @@ void	pars_helper(t_token **tok, t_cmd *cmd, char **args, int *argc)
 
 	i = 0;
 	cmd->out_file = malloc(sizeof(char *) * 50);
+	if (!cmd->out_file)
+		return ;
 	while ((*tok) && (*tok)->type != PIPE)
 	{
 		if (((*tok)->type == REDIR_IN || (*tok)->type == REDIR_OUT
@@ -52,14 +54,12 @@ void	pars_helper(t_token **tok, t_cmd *cmd, char **args, int *argc)
 			&& (*tok)->next)
 		{
 			pars_helper2(tok, cmd, &i);
-			if ((*tok)->type == REDIR_OUT || (*tok)->type == REDIR_APPEND)
 			*tok = (*tok)->next->next;
 			continue ;
 		}
-
 		else if ((*tok)->type == WORD && (*tok)->value 
 				&& (*tok)->value[0] != '\0')
-			args[(*argc)++] = (*tok)->value;
+			args[(*argc)++] = ft_strdup((*tok)->value);
 		*tok = (*tok)->next;
 	}
 	cmd->out_file[i] = NULL;
