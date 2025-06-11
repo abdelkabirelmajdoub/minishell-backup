@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_var.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yazlaigi <yazlaigi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ael-majd <ael-majd@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/05 11:32:11 by yazlaigi          #+#    #+#             */
-/*   Updated: 2025/05/13 12:42:52 by yazlaigi         ###   ########.fr       */
+/*   Updated: 2025/06/10 17:56:10 by ael-majd         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ char	*expand_variable(char *value, t_env *env)
 			free(exit_str);
 			i += 2;
 		}
-		if (value[i] == '$' && value[i + 1]
+		else if (value[i] == '$' && value[i + 1]
 			&& (ft_isalpha(value[i + 1]) || value[i + 1] == '_'))
 		{
 			int k = 0;
@@ -134,6 +134,25 @@ void	clean_empty_tokens(t_token **tokens)
 	}
 }
 
+char	*expand_tilde(const char *value)
+{
+    char	*home;
+    char	*rest;
+    char	*result;
+
+	home = getenv("HOME");
+    if (!home)
+        return ft_strdup(value);
+    if (value[0] == '~' && (value[1] == '\0' || value[1] == '/'))
+    {
+        rest = ft_strdup(value + 1);
+        result = ft_strjoin(home, rest);
+        free(rest);
+        return result;
+    }
+    return ft_strdup(value);
+}
+
 void	expend_token(t_token *tokens, t_env *env)
 {
 	t_token	*cpy_tok;
@@ -142,12 +161,17 @@ void	expend_token(t_token *tokens, t_env *env)
 	cpy_tok = tokens;
 	while (cpy_tok)
 	{
-		if (cpy_tok->type == WORD && cpy_tok->quote_type != '\''
-			&& ft_strchr (cpy_tok->value, '$'))
+		if (cpy_tok->type == WORD)
 		{
-			expanded = expand_variable(cpy_tok->value, env);
-			if (expanded)
+			if (cpy_tok->quote_type != '\'' && ft_strchr(cpy_tok->value, '$'))
 			{
+				expanded = expand_variable(cpy_tok->value, env);
+				free(cpy_tok->value);
+				cpy_tok->value = expanded;
+			}
+			if (cpy_tok->quote_type == 0 && cpy_tok->value[0] == '~')
+			{ 
+				expanded = expand_tilde(cpy_tok->value);
 				free(cpy_tok->value);
 				cpy_tok->value = expanded;
 			}
@@ -156,25 +180,25 @@ void	expend_token(t_token *tokens, t_env *env)
 	}
 }
 
-void	handle_quotes(t_token *tokens)
+void	handle_quotes(t_token *tokens)//my change
 {
 	t_token	*tok;
 	char	*new_value;
+	size_t	len;
 
 	tok = tokens;
 	while (tok)
 	{
-		if (tok->type == WORD)
+		if (tok->type == WORD && (tok->quote_type == '\'' || tok->quote_type == '"'))
 		{
-			if (ft_strlen(tok->value) >= 2 && (tok->value[0] == '\'' || tok->value[0] == '"') 
-				&& tok->value[ft_strlen(tok->value) - 1] == tok->value[0])
+			len = ft_strlen(tok->value);
+			if (len >= 2 && tok->value[0] == tok->quote_type && tok->value[len - 1] == tok->quote_type)
 			{
-				new_value = ft_substr(tok->value, 1, ft_strlen(tok->value) - 2);
+				new_value = ft_substr(tok->value, 1, len - 2);
 				free(tok->value);
 				tok->value = new_value;
 			}
 		}
 		tok = tok->next;
-
 	}
 }
